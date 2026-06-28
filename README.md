@@ -4,6 +4,8 @@ A job-search tracker that treats the hunt like a sales pipeline. Applications ar
 sources and categories are segments, statuses are pipeline stages, and the dashboard shows
 where your effort actually converts.
 
+This could have been a spreadsheet.
+
 **Live:** https://quarry.section33.io 
 
 ---
@@ -69,9 +71,10 @@ development.
 
 ---
 
-## A note on the screenshots
+## Screenshots
 
-The images above are rendered mockups of the interface with representative sample data,
-not captures of a real user's pipeline. The app looks the same; your data stays yours.
-To use your own real screenshots instead, drop them in the `screenshots/` folder with the
-same filenames (`dashboard.png`, `log-application.png`, `linkedin-card.png`).
+![Quarry dashboard](screenshots/dashboard.png)
+![Job Application Modal](screenshots/application.png)
+![Stats & Metrics](screenshots/stats.png)
+![Linkedin Export](screenshots/linkedinexport.png)
+![JSON Import](screenshots/import.png)
