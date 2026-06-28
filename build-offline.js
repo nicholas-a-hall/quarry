@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * Quarry offline build.
- * Regenerates quarry-offline.html from pipeline.html — fully self-contained, no network.
+ * Regenerates index.html (offline build) from index-cdn.html (CDN source) — fully self-contained, no network.
  *
  * Prereqs (run once in this folder):
  *   npm install react@18.3.1 react-dom@18.3.1 recharts@2.12.7 \
@@ -11,7 +11,7 @@
  *   node build-offline.js
  *
  * See QUARRY-HANDOFF.md for why each step exists. The tricky bits:
- *  - icon/recharts name lists are DERIVED from pipeline.html's imports (no hardcoding)
+ *  - icon/recharts name lists are DERIVED from index-cdn.html's imports (no hardcoding)
  *  - UMD bundles wrapped to force the browser-global branch
  *  - lowercase window.react alias for lucide-react
  */
@@ -20,8 +20,8 @@ const path = require("path");
 const babel = require("@babel/core");
 
 const HERE = __dirname;
-const SRC = path.join(HERE, "pipeline.html");
-const OUT = path.join(HERE, "quarry-offline.html");
+const SRC = path.join(HERE, "index-cdn.html");
+const OUT = path.join(HERE, "index.html");
 const NM = path.join(HERE, "node_modules");
 
 const cdnHtml = fs.readFileSync(SRC, "utf8");

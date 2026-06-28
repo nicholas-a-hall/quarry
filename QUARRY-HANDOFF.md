@@ -19,21 +19,26 @@ mid-slate neumorphic theme. The name and look are settled; don't redesign them.
 
 ---
 
-## The three files (and which is canonical)
+## The files (and which is canonical)
+
+There are two real builds plus the React source. Note the naming: the file GitHub Pages
+serves is `index.html`, and that is the OFFLINE build (the one that deploys).
 
 1. **`PipelineDashboard.jsx`** — the React source of truth. A single-file component.
    Edit this when working in a real React project. ~1700 lines.
 
-2. **`pipeline.html`** — standalone build that loads React/Recharts/lucide/Babel from
-   esm.sh at runtime. Small (~68KB) but REQUIRES INTERNET. Good for hosting where
-   there's always a connection (e.g. GitHub Pages).
+2. **`index-cdn.html`** — the CDN build. Loads React/Recharts/lucide/Babel from esm.sh at
+   runtime. Small (~68KB) but REQUIRES INTERNET. This is also the editable HTML source that
+   the offline build is compiled from. (Earlier in the project this file was named
+   `pipeline.html` — a leftover from when the app was called "pipeline dashboard.")
 
-3. **`quarry-offline.html`** — fully self-contained (~1.2MB). All libraries inlined,
-   JSX pre-compiled to plain JS, zero network calls. This is the one that works offline.
-   It is GENERATED from `pipeline.html` by a build step (see "Build process" below) —
-   never hand-edit it.
+3. **`index.html`** — the OFFLINE build, fully self-contained (~1.2MB). All libraries
+   inlined, JSX pre-compiled to plain JS, zero network calls. This is what gets deployed to
+   GitHub Pages (Pages serves `index.html` by default). It is GENERATED from `index-cdn.html`
+   by the build step (see "Build process" below) — never hand-edit it. (Earlier this file
+   was named `quarry-offline.html`.)
 
-**CRITICAL: pipeline.html and PipelineDashboard.jsx must stay in sync.** They contain
+**CRITICAL: index-cdn.html and PipelineDashboard.jsx must stay in sync.** They contain
 the same component with two differences only:
 - The `.jsx` uses ES module imports (`import ... from "react"`); the `.html` uses
   esm.sh URLs in a `<script type="text/babel" data-type="module">` block.
@@ -41,7 +46,7 @@ the same component with two differences only:
   whether a given feature belongs in both.
 
 When you change one, port the identical change to the other, then regenerate
-quarry-offline.html. Every edit in this project was done as a matched pair.
+`index.html` with the build script. Every edit in this project was done as a matched pair.
 
 ---
 
@@ -144,11 +149,11 @@ ancillary (Category, link, Skills, Notes). The `valid` check gates save on compa
 
 ---
 
-## Build process (how to regenerate quarry-offline.html)
+## Build process (how to regenerate index.html, the offline build)
 
 The offline file is compiled, not hand-written. The pipeline:
 
-1. Extract the component code from `pipeline.html`'s `<script type="text/babel">` block.
+1. Extract the component code from `index-cdn.html`'s `<script type="text/babel">` block.
 2. Strip the esm.sh import lines.
 3. Prepend a shim that binds names from UMD globals:
    `const { useState, ... } = React; const { LineChart, ... } = Recharts;` etc.
@@ -187,7 +192,7 @@ After any change, before claiming it works:
 
 1. **Transpile check**: extract the component, run it through `@babel/preset-react`. Catches
    syntax errors. Every edit was validated this way.
-2. **Headless render test (jsdom)**: load quarry-offline.html in jsdom with
+2. **Headless render test (jsdom)**: load index.html (the offline build) in jsdom with
    `runScripts: "dangerously"`, seed a record via an injected `localStorage.setItem`
    script, and assert: header count, row count, cells-per-row, that sample data renders,
    that there are zero console errors. This caught the GripVertical bug and the missing
@@ -209,7 +214,7 @@ After any change, before claiming it works:
 - Median response time only counts records with a responseDate filled in; small samples
   swing it. The "N measured" subtext shows the sample size honestly.
 - The offline file needs internet on FIRST nothing — it's fully self-contained. (The CDN
-  pipeline.html is the one that needs internet every load.)
+  index-cdn.html is the one that needs internet every load.)
 
 ---
 
@@ -219,9 +224,9 @@ Paste something like:
 
 > I'm continuing development on Quarry, a job-search pipeline tracker. I'm attaching the
 > handoff doc and the three files. Read the handoff first. [attach QUARRY-HANDOFF.md,
-> PipelineDashboard.jsx, pipeline.html — the offline build can be regenerated]. Today I
+> PipelineDashboard.jsx, index-cdn.html — the offline build (index.html) can be regenerated]. Today I
 > want to [your task].
 
 The fresh instance should read the handoff, confirm it understands the sync requirement
-and the build process, then work. If it starts hand-editing quarry-offline.html or
+and the build process, then work. If it starts hand-editing index.html (the offline build) or
 forgets to keep the two source files in sync, stop it and point back here.

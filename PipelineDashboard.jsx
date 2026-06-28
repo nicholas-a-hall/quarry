@@ -580,17 +580,18 @@ export default function PipelineDashboard() {
               {starred.map((r) => {
                 const st = STATUS_MAP[r.status], sc = SOURCE_MAP[r.source];
                 return (
-                  <div key={r.id} style={s.pinnedCard}>
+                  <div key={r.id} style={s.pinnedCard} className="pinnedCard"
+                    onClick={() => setEditing(r)} title="Click to view and edit">
                     <div style={s.pinnedCardGlow} />
                     <div style={s.pinnedCardTop}>
                       <div style={{ minWidth: 0 }}>
                         <div style={s.pinnedCompany}>
                           {r.company}
-                          {r.link && <a href={r.link} target="_blank" rel="noreferrer" style={s.jdLink}><ExternalLink size={12} /></a>}
+                          {r.link && <a href={r.link} target="_blank" rel="noreferrer" style={s.jdLink} onClick={(e) => e.stopPropagation()}><ExternalLink size={12} /></a>}
                         </div>
                         <div style={s.pinnedRole}>{r.role}</div>
                       </div>
-                      <button className="iconbtn" style={s.pinStar} onClick={() => toggleStar(r.id)} title="Unpin">
+                      <button className="iconbtn" style={s.pinStar} onClick={(e) => { e.stopPropagation(); toggleStar(r.id); }} title="Unpin">
                         <Star size={15} color={T.amber} fill={T.amber} />
                       </button>
                     </div>
@@ -1000,7 +1001,7 @@ const s = {
   pinnedTitle: { fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: T.amber },
   pinnedCount: { fontSize: 10.5, fontWeight: 800, color: T.amber, background: T.amber + "22", borderRadius: 20, padding: "1px 8px" },
   pinnedGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 },
-  pinnedCard: { position: "relative", background: T.inset, borderRadius: 14, padding: 16, boxShadow: inset, overflow: "hidden" },
+  pinnedCard: { position: "relative", background: T.inset, borderRadius: 14, padding: 16, boxShadow: inset, overflow: "hidden", cursor: "pointer", transition: "box-shadow 0.15s ease" },
   pinnedCardGlow: { position: "absolute", top: -40, right: -40, width: 110, height: 110, borderRadius: "50%", background: T.amber, opacity: 0.08, filter: "blur(28px)", pointerEvents: "none" },
   pinnedCardTop: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 12 },
   pinnedCompany: { fontSize: 15, fontWeight: 800, letterSpacing: "-0.01em", display: "flex", alignItems: "center" },
@@ -1150,6 +1151,7 @@ const CSS = `
   .statusBtn:hover { color: ${T.text}; }
   .colHead:hover { color: ${T.text}; background: ${T.inset}; }
   .colHead:active { cursor: grabbing; }
+  .pinnedCard:hover { box-shadow: inset 2px 2px 6px #1c2027, inset -2px -2px 6px #3f4754, 0 0 0 1px ${T.amber}44; }
   .appRow:hover { background: ${T.inset}66; }
   .appRow td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
   input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
