@@ -6,7 +6,9 @@ where your effort actually converts.
 
 Yes, this could have been a spreadsheet and some pivot tables.
 
-**Live:** https://nicholas-a-hall.github.io/quarry/
+**Live:** 
+https://quarry.section33.io
+https://nicholas-a-hall.github.io/quarry/
 
 ---
 
