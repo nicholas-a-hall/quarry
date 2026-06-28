@@ -7,7 +7,6 @@ where your effort actually converts.
 Yes, this could have been a spreadsheet and some pivot tables.
 
 **Live:** 
-- https://quarry.section33.io
 - https://nicholas-a-hall.github.io/quarry/
 
 ---
@@ -75,8 +74,13 @@ development.
 
 ## Screenshots
 
+#### Main dashboard
 ![Quarry dashboard](screenshots/dashboard.png)
-![Job Application Modal](screenshots/application.png)
 ![Stats & Metrics](screenshots/stats.png)
-![Linkedin Export](screenshots/linkedinexport.png)
+
+#### Track a new job application
+![Job Application Modal](screenshots/application.png)
+
+#### JSON Import, LinkedIn Stats Export
 ![JSON Import](screenshots/import.png)
+![Linkedin Export](screenshots/linkedinexport.png)
