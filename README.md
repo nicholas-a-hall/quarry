@@ -6,7 +6,7 @@ where your effort actually converts.
 
 This could have been a spreadsheet.
 
-**Live:** https://quarry.section33.io 
+**Live:** https://nicholas-a-hall.github.io/quarry/
 
 ---
 
