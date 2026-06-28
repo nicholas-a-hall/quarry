@@ -4,7 +4,7 @@ A job-search tracker that treats the hunt like a sales pipeline. Applications ar
 sources and categories are segments, statuses are pipeline stages, and the dashboard shows
 where your effort actually converts.
 
-This could have been a spreadsheet.
+Yes, this could have been a spreadsheet and some pivot tables.
 
 **Live:** https://nicholas-a-hall.github.io/quarry/
 
