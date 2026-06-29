@@ -497,53 +497,6 @@ function PipelineDashboard() {
         </div>
       </header>
 
-      {/* PINNED PRIORITY TARGETS — above the table */}
-      {starred.length > 0 && (
-        <section style={s.pinnedWrap}>
-          <button className="filterToggle" style={{ ...s.pinnedHead, marginBottom: pinnedOpen ? 14 : 0 }} onClick={() => setPinnedOpen((o) => !o)}>
-            <Pin size={13} color={T.amber} fill={T.amber} />
-            <span style={s.pinnedTitle}>Priority Targets</span>
-            <span style={s.pinnedCount}>{starred.length}</span>
-            <span style={{ flex: 1 }} />
-            <ChevronDown size={16} color={T.amber}
-              style={{ transform: pinnedOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }} />
-          </button>
-          {pinnedOpen && (
-            <div style={s.pinnedGrid}>
-              {starred.map((r) => {
-                const st = STATUS_MAP[r.status], sc = SOURCE_MAP[r.source];
-                return (
-                  <div key={r.id} style={s.pinnedCard} className="pinnedCard"
-                    onClick={() => setEditing(r)} title="Click to view and edit">
-                    <div style={s.pinnedCardGlow} />
-                    <div style={s.pinnedCardTop}>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={s.pinnedCompany}>
-                          {r.company}
-                          {r.link && <a href={r.link} target="_blank" rel="noreferrer" style={s.jdLink} onClick={(e) => e.stopPropagation()}><ExternalLink size={12} /></a>}
-                        </div>
-                        <div style={s.pinnedRole}>{r.role}</div>
-                      </div>
-                      <button className="iconbtn" style={s.pinStar} onClick={(e) => { e.stopPropagation(); toggleStar(r.id); }} title="Unpin">
-                        <Star size={15} color={T.amber} fill={T.amber} />
-                      </button>
-                    </div>
-                    <div style={s.pinnedMeta}>
-                      <span style={{ ...s.statusPill, background: st.color + "22", color: st.color }}>{st.label}</span>
-                      <span style={{ ...s.srcPill, color: sc.color, borderColor: sc.color + "44" }}>{sc.short}</span>
-                      {(r.salaryMin || r.salaryMax) && (
-                        <span style={s.pinnedSalary}>{fmtMoney(+r.salaryMin)}–{fmtMoney(+r.salaryMax)}</span>
-                      )}
-                    </div>
-                    {r.notes && <div style={s.pinnedNotes}>{r.notes}</div>}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
-      )}
-
       {/* FILTER BAR */}
       <div style={s.filterBar}>
         <button className="filterToggle" style={s.filterHeader} onClick={() => setFiltersOpen((o) => !o)}>
@@ -608,6 +561,53 @@ function PipelineDashboard() {
           </div>
         )}
       </div>
+
+      {/* PINNED PRIORITY TARGETS — below filters, above table */}
+      {starred.length > 0 && (
+        <section style={s.pinnedWrap}>
+          <button className="filterToggle" style={{ ...s.pinnedHead, marginBottom: pinnedOpen ? 14 : 0 }} onClick={() => setPinnedOpen((o) => !o)}>
+            <Pin size={13} color={T.amber} fill={T.amber} />
+            <span style={s.pinnedTitle}>Priority Targets</span>
+            <span style={s.pinnedCount}>{starred.length}</span>
+            <span style={{ flex: 1 }} />
+            <ChevronDown size={16} color={T.amber}
+              style={{ transform: pinnedOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }} />
+          </button>
+          {pinnedOpen && (
+            <div style={s.pinnedGrid}>
+              {starred.map((r) => {
+                const st = STATUS_MAP[r.status], sc = SOURCE_MAP[r.source];
+                return (
+                  <div key={r.id} style={s.pinnedCard} className="pinnedCard"
+                    onClick={() => setEditing(r)} title="Click to view and edit">
+                    <div style={s.pinnedCardGlow} />
+                    <div style={s.pinnedCardTop}>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={s.pinnedCompany}>
+                          {r.company}
+                          {r.link && <a href={r.link} target="_blank" rel="noreferrer" style={s.jdLink} onClick={(e) => e.stopPropagation()}><ExternalLink size={12} /></a>}
+                        </div>
+                        <div style={s.pinnedRole}>{r.role}</div>
+                      </div>
+                      <button className="iconbtn" style={s.pinStar} onClick={(e) => { e.stopPropagation(); toggleStar(r.id); }} title="Unpin">
+                        <Star size={15} color={T.amber} fill={T.amber} />
+                      </button>
+                    </div>
+                    <div style={s.pinnedMeta}>
+                      <span style={{ ...s.statusPill, background: st.color + "22", color: st.color }}>{st.label}</span>
+                      <span style={{ ...s.srcPill, color: sc.color, borderColor: sc.color + "44" }}>{sc.short}</span>
+                      {(r.salaryMin || r.salaryMax) && (
+                        <span style={s.pinnedSalary}>{fmtMoney(+r.salaryMin)}–{fmtMoney(+r.salaryMax)}</span>
+                      )}
+                    </div>
+                    {r.notes && <div style={s.pinnedNotes}>{r.notes}</div>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* ===== APPLICATIONS TABLE — the birds-eye view ===== */}
       <section style={{ ...s.card, marginBottom: 16 }}>
