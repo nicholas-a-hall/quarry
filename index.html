@@ -364,8 +364,6 @@ const {
   Legend
 } = Recharts;
 const {
-  Download,
-  Upload,
   Plus,
   Trash2,
   RotateCcw,
@@ -391,7 +389,10 @@ const {
   Star,
   Pin,
   ChevronDown,
-  GripVertical
+  GripVertical,
+  FileUp,
+  ClipboardPaste,
+  Save
 } = LucideReact;
 
 /* ============================================================
@@ -647,10 +648,12 @@ function PipelineDashboard() {
     } catch (e) {}
   }, [data]);
   const [editing, setEditing] = useState(null); // record being edited, or null
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [pasteText, setPasteText] = useState("");
   const [catFilter, setCatFilter] = useState("all");
   const [srcFilter, setSrcFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [filtersOpen, setFiltersOpen] = useState(true);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [pinnedOpen, setPinnedOpen] = useState(true);
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState("appliedDate");
@@ -777,10 +780,18 @@ function PipelineDashboard() {
     setData(p);
   };
   const importPaste = () => {
-    const text = prompt("Paste pipeline JSON here:");
-    if (!text) return;
+    setPasteText("");
+    setPasteOpen(true);
+  };
+  const commitPaste = () => {
+    const text = pasteText.trim();
+    if (!text) {
+      setPasteOpen(false);
+      return;
+    }
     try {
       loadParsed(text);
+      setPasteOpen(false);
     } catch (err) {
       alert("Not valid pipeline JSON: " + err.message);
     }
@@ -1063,6 +1074,7 @@ function PipelineDashboard() {
   })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: s.brandTitle
   }, "QUARRY"))), /*#__PURE__*/React.createElement("div", {
+    className: "topActionsRow",
     style: s.topActions
   }, /*#__PURE__*/React.createElement("input", {
     type: "file",
@@ -1079,15 +1091,15 @@ function PipelineDashboard() {
     accent: true
   }), /*#__PURE__*/React.createElement(IconBtn, {
     onClick: tryImport,
-    icon: Upload,
+    icon: FileUp,
     label: "Import"
   }), /*#__PURE__*/React.createElement(IconBtn, {
     onClick: importPaste,
-    icon: Upload,
+    icon: ClipboardPaste,
     label: "Paste JSON"
   }), /*#__PURE__*/React.createElement(IconBtn, {
     onClick: exportJSON,
-    icon: Download,
+    icon: Save,
     label: "Export JSON"
   }), /*#__PURE__*/React.createElement(IconBtn, {
     onClick: exportPNG,
@@ -1097,6 +1109,96 @@ function PipelineDashboard() {
     onClick: reset,
     icon: RotateCcw,
     label: ""
+  }))), starred.length > 0 && /*#__PURE__*/React.createElement("section", {
+    style: s.pinnedWrap
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "filterToggle",
+    style: {
+      ...s.pinnedHead,
+      marginBottom: pinnedOpen ? 14 : 0
+    },
+    onClick: () => setPinnedOpen(o => !o)
+  }, /*#__PURE__*/React.createElement(Pin, {
+    size: 13,
+    color: T.amber,
+    fill: T.amber
+  }), /*#__PURE__*/React.createElement("span", {
+    style: s.pinnedTitle
+  }, "Priority Targets"), /*#__PURE__*/React.createElement("span", {
+    style: s.pinnedCount
+  }, starred.length), /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1
+    }
+  }), /*#__PURE__*/React.createElement(ChevronDown, {
+    size: 16,
+    color: T.amber,
+    style: {
+      transform: pinnedOpen ? "rotate(180deg)" : "rotate(0deg)",
+      transition: "transform 0.2s ease"
+    }
+  })), pinnedOpen && /*#__PURE__*/React.createElement("div", {
+    style: s.pinnedGrid
+  }, starred.map(r => {
+    const st = STATUS_MAP[r.status],
+      sc = SOURCE_MAP[r.source];
+    return /*#__PURE__*/React.createElement("div", {
+      key: r.id,
+      style: s.pinnedCard,
+      className: "pinnedCard",
+      onClick: () => setEditing(r),
+      title: "Click to view and edit"
+    }, /*#__PURE__*/React.createElement("div", {
+      style: s.pinnedCardGlow
+    }), /*#__PURE__*/React.createElement("div", {
+      style: s.pinnedCardTop
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: s.pinnedCompany
+    }, r.company, r.link && /*#__PURE__*/React.createElement("a", {
+      href: r.link,
+      target: "_blank",
+      rel: "noreferrer",
+      style: s.jdLink,
+      onClick: e => e.stopPropagation()
+    }, /*#__PURE__*/React.createElement(ExternalLink, {
+      size: 12
+    }))), /*#__PURE__*/React.createElement("div", {
+      style: s.pinnedRole
+    }, r.role)), /*#__PURE__*/React.createElement("button", {
+      className: "iconbtn",
+      style: s.pinStar,
+      onClick: e => {
+        e.stopPropagation();
+        toggleStar(r.id);
+      },
+      title: "Unpin"
+    }, /*#__PURE__*/React.createElement(Star, {
+      size: 15,
+      color: T.amber,
+      fill: T.amber
+    }))), /*#__PURE__*/React.createElement("div", {
+      style: s.pinnedMeta
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        ...s.statusPill,
+        background: st.color + "22",
+        color: st.color
+      }
+    }, st.label), /*#__PURE__*/React.createElement("span", {
+      style: {
+        ...s.srcPill,
+        color: sc.color,
+        borderColor: sc.color + "44"
+      }
+    }, sc.short), (r.salaryMin || r.salaryMax) && /*#__PURE__*/React.createElement("span", {
+      style: s.pinnedSalary
+    }, fmtMoney(+r.salaryMin), "\u2013", fmtMoney(+r.salaryMax))), r.notes && /*#__PURE__*/React.createElement("div", {
+      style: s.pinnedNotes
+    }, r.notes));
   }))), /*#__PURE__*/React.createElement("div", {
     style: s.filterBar
   }, /*#__PURE__*/React.createElement("button", {
@@ -1318,97 +1420,7 @@ function PipelineDashboard() {
       size: 12,
       color: T.textDim
     }))));
-  }))))), starred.length > 0 && /*#__PURE__*/React.createElement("section", {
-    style: s.pinnedWrap
-  }, /*#__PURE__*/React.createElement("button", {
-    className: "filterToggle",
-    style: {
-      ...s.pinnedHead,
-      marginBottom: pinnedOpen ? 14 : 0
-    },
-    onClick: () => setPinnedOpen(o => !o)
-  }, /*#__PURE__*/React.createElement(Pin, {
-    size: 13,
-    color: T.amber,
-    fill: T.amber
-  }), /*#__PURE__*/React.createElement("span", {
-    style: s.pinnedTitle
-  }, "Priority Targets"), /*#__PURE__*/React.createElement("span", {
-    style: s.pinnedCount
-  }, starred.length), /*#__PURE__*/React.createElement("span", {
-    style: {
-      flex: 1
-    }
-  }), /*#__PURE__*/React.createElement(ChevronDown, {
-    size: 16,
-    color: T.amber,
-    style: {
-      transform: pinnedOpen ? "rotate(180deg)" : "rotate(0deg)",
-      transition: "transform 0.2s ease"
-    }
-  })), pinnedOpen && /*#__PURE__*/React.createElement("div", {
-    style: s.pinnedGrid
-  }, starred.map(r => {
-    const st = STATUS_MAP[r.status],
-      sc = SOURCE_MAP[r.source];
-    return /*#__PURE__*/React.createElement("div", {
-      key: r.id,
-      style: s.pinnedCard,
-      className: "pinnedCard",
-      onClick: () => setEditing(r),
-      title: "Click to view and edit"
-    }, /*#__PURE__*/React.createElement("div", {
-      style: s.pinnedCardGlow
-    }), /*#__PURE__*/React.createElement("div", {
-      style: s.pinnedCardTop
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        minWidth: 0
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: s.pinnedCompany
-    }, r.company, r.link && /*#__PURE__*/React.createElement("a", {
-      href: r.link,
-      target: "_blank",
-      rel: "noreferrer",
-      style: s.jdLink,
-      onClick: e => e.stopPropagation()
-    }, /*#__PURE__*/React.createElement(ExternalLink, {
-      size: 12
-    }))), /*#__PURE__*/React.createElement("div", {
-      style: s.pinnedRole
-    }, r.role)), /*#__PURE__*/React.createElement("button", {
-      className: "iconbtn",
-      style: s.pinStar,
-      onClick: e => {
-        e.stopPropagation();
-        toggleStar(r.id);
-      },
-      title: "Unpin"
-    }, /*#__PURE__*/React.createElement(Star, {
-      size: 15,
-      color: T.amber,
-      fill: T.amber
-    }))), /*#__PURE__*/React.createElement("div", {
-      style: s.pinnedMeta
-    }, /*#__PURE__*/React.createElement("span", {
-      style: {
-        ...s.statusPill,
-        background: st.color + "22",
-        color: st.color
-      }
-    }, st.label), /*#__PURE__*/React.createElement("span", {
-      style: {
-        ...s.srcPill,
-        color: sc.color,
-        borderColor: sc.color + "44"
-      }
-    }, sc.short), (r.salaryMin || r.salaryMax) && /*#__PURE__*/React.createElement("span", {
-      style: s.pinnedSalary
-    }, fmtMoney(+r.salaryMin), "\u2013", fmtMoney(+r.salaryMax))), r.notes && /*#__PURE__*/React.createElement("div", {
-      style: s.pinnedNotes
-    }, r.notes));
-  }))), /*#__PURE__*/React.createElement("div", {
+  }))))), /*#__PURE__*/React.createElement("div", {
     style: s.kpiRow
   }, /*#__PURE__*/React.createElement(Kpi, {
     label: "Total Applied",
@@ -1436,6 +1448,7 @@ function PipelineDashboard() {
     accent: T.red,
     sub: `${nNoResp} silent`
   })), /*#__PURE__*/React.createElement("div", {
+    className: "analyticsGrid",
     style: s.grid
   }, /*#__PURE__*/React.createElement(Card, {
     title: "Conversion by Lead Source",
@@ -1770,7 +1783,62 @@ function PipelineDashboard() {
     categories: cats,
     onSave: saveRecord,
     onClose: () => setEditing(null)
-  }));
+  }), pasteOpen && /*#__PURE__*/React.createElement("div", {
+    className: "modalOverlay",
+    style: m.overlay,
+    onClick: () => setPasteOpen(false)
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modalSheet",
+    style: {
+      ...m.modal,
+      maxWidth: 560
+    },
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("div", {
+    style: m.head
+  }, /*#__PURE__*/React.createElement("span", {
+    style: m.title
+  }, "Paste JSON"), /*#__PURE__*/React.createElement("button", {
+    className: "iconbtn",
+    style: s.miniBtn,
+    onClick: () => setPasteOpen(false),
+    title: "Close"
+  }, /*#__PURE__*/React.createElement(X, {
+    size: 14,
+    color: T.textDim
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "modalBody",
+    style: m.body
+  }, /*#__PURE__*/React.createElement("textarea", {
+    autoFocus: true,
+    value: pasteText,
+    onChange: e => setPasteText(e.target.value),
+    placeholder: "Paste exported Quarry JSON here, e.g. { \"version\": 1, \"records\": [ ... ] }",
+    className: "modalIn",
+    style: {
+      ...m.input,
+      minHeight: 220,
+      resize: "vertical",
+      fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+      fontSize: 12,
+      lineHeight: 1.5,
+      whiteSpace: "pre"
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: m.foot
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "textbtn",
+    style: m.cancelBtn,
+    onClick: () => setPasteOpen(false)
+  }, "Cancel"), /*#__PURE__*/React.createElement("button", {
+    className: "textbtn",
+    style: {
+      ...m.saveBtn,
+      opacity: pasteText.trim() ? 1 : 0.5
+    },
+    onClick: commitPaste,
+    disabled: !pasteText.trim()
+  }, "Import")))));
 }
 
 /* ============ RECORD MODAL ============ */
@@ -1794,9 +1862,11 @@ function RecordModal({
   const removeSkill = sk => set("skills", r.skills.filter(x => x !== sk));
   const valid = r.company.trim() && r.role.trim();
   return /*#__PURE__*/React.createElement("div", {
+    className: "modalOverlay",
     style: m.overlay,
     onClick: onClose
   }, /*#__PURE__*/React.createElement("div", {
+    className: "modalSheet",
     style: m.modal,
     onClick: e => e.stopPropagation()
   }, /*#__PURE__*/React.createElement("div", {
@@ -1831,8 +1901,10 @@ function RecordModal({
     size: 16,
     color: T.textDim
   })))), /*#__PURE__*/React.createElement("div", {
+    className: "modalBody",
     style: m.body
   }, /*#__PURE__*/React.createElement("div", {
+    className: "mRow2",
     style: m.row2
   }, /*#__PURE__*/React.createElement(Field, {
     label: "Company *"
@@ -1849,6 +1921,7 @@ function RecordModal({
   }))), /*#__PURE__*/React.createElement(Field, {
     label: "Status"
   }, /*#__PURE__*/React.createElement("div", {
+    className: "statusBtnRow",
     style: m.statusBtns
   }, STATUSES.map(st => {
     const on = r.status === st.key;
@@ -1867,6 +1940,7 @@ function RecordModal({
       }
     }, st.label);
   }))), /*#__PURE__*/React.createElement("div", {
+    className: "mRow3",
     style: m.row3
   }, /*#__PURE__*/React.createElement(Field, {
     label: "Source"
@@ -1893,6 +1967,7 @@ function RecordModal({
     onChange: v => set("salaryMax", v),
     ph: "280000"
   }))), /*#__PURE__*/React.createElement("div", {
+    className: "mRow2",
     style: m.row2
   }, /*#__PURE__*/React.createElement(Field, {
     label: "Location"
@@ -1911,6 +1986,7 @@ function RecordModal({
     key: o,
     value: o
   }, o))))), /*#__PURE__*/React.createElement("div", {
+    className: "mRow2",
     style: m.row2
   }, /*#__PURE__*/React.createElement(Field, {
     label: "Applied date"
@@ -1931,6 +2007,7 @@ function RecordModal({
   }, "Additional details"), /*#__PURE__*/React.createElement("span", {
     style: m.dividerLine
   })), /*#__PURE__*/React.createElement("div", {
+    className: "mRow2",
     style: m.row2
   }, /*#__PURE__*/React.createElement(Field, {
     label: "Category"
@@ -2034,6 +2111,7 @@ function Card({
   span = 1
 }) {
   return /*#__PURE__*/React.createElement("section", {
+    className: span === 3 ? "cardSpan3" : undefined,
     style: {
       ...s.card,
       gridColumn: `span ${span}`
@@ -2977,7 +3055,8 @@ const m = {
     display: "grid",
     placeItems: "center",
     zIndex: 100,
-    padding: 20
+    padding: 20,
+    boxSizing: "border-box"
   },
   modal: {
     background: T.panel,
@@ -3020,12 +3099,12 @@ const m = {
   },
   row2: {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr",
+    gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)",
     gap: 12
   },
   row3: {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr 1fr",
+    gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)",
     gap: 12
   },
   field: {
@@ -3185,6 +3264,26 @@ const CSS = `
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: ${T.bg}; }
   ::-webkit-scrollbar-thumb { background: ${T.edgeLight}; border-radius: 5px; }
+
+  /* ----- responsive grid: 3 → 2 → 1 columns ----- */
+  @media (max-width: 960px) {
+    .analyticsGrid { grid-template-columns: repeat(2, 1fr) !important; }
+    .analyticsGrid .cardSpan3 { grid-column: 1 / -1 !important; }
+  }
+  @media (max-width: 760px) {
+    .analyticsGrid { grid-template-columns: 1fr !important; }
+    .analyticsGrid > * { grid-column: 1 / -1 !important; }
+  }
+  @media (max-width: 560px) {
+    .mRow2, .mRow3 { grid-template-columns: 1fr !important; }
+    .modalOverlay { padding: 10px !important; place-items: start stretch !important; align-content: start !important; }
+    .modalSheet { width: 100% !important; max-width: 100% !important; max-height: 94vh !important; border-radius: 16px !important; box-sizing: border-box !important; }
+    .modalBody { padding: 16px !important; }
+    .statusBtnRow .statusBtn { min-width: 0 !important; flex: 1 1 40% !important; }
+    input[type="date"], input[type="number"] { min-width: 0; max-width: 100%; }
+    .topActionsRow { width: 100%; }
+    .topActionsRow > * { flex: 1 1 auto; }
+  }
 `;
 const root = createRoot(document.getElementById('root'));
 root.render(React.createElement(PipelineDashboard));
