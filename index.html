@@ -424,6 +424,11 @@ const inset = `inset -3px -3px 8px ${T.edgeLight}66, inset 4px 4px 10px ${T.edge
 // Status: the pipeline stages an application moves through.
 // "responded" is derived (interview|offer|rejected), not a stored status.
 const STATUSES = [{
+  key: "lead",
+  label: "Lead",
+  color: T.blue,
+  sentiment: "neutral"
+}, {
   key: "applied",
   label: "Applied",
   color: T.cyan,
@@ -519,6 +524,7 @@ const blankRecord = () => ({
   status: "applied",
   skills: [],
   link: "",
+  website: "",
   appliedDate: today(),
   responseDate: "",
   notes: "",
@@ -537,7 +543,21 @@ const COLUMNS = [{
   key: "company",
   label: "Company",
   sortKey: "company",
-  render: r => /*#__PURE__*/React.createElement(React.Fragment, null, r.company || "—", r.link && /*#__PURE__*/React.createElement("a", {
+  render: r => /*#__PURE__*/React.createElement(React.Fragment, null, r.company || "—", r.website && /*#__PURE__*/React.createElement("a", {
+    href: r.website.startsWith("http") ? r.website : "https://" + r.website,
+    target: "_blank",
+    rel: "noreferrer",
+    style: {...s.jdLink, opacity: 0.55},
+    title: "Company website"
+  }, /*#__PURE__*/React.createElement(ExternalLink, {
+    size: 11
+  }))),
+  tdStyle: () => s.tdCompany
+}, {
+  key: "role",
+  label: "Role",
+  sortKey: "role",
+  render: r => /*#__PURE__*/React.createElement(React.Fragment, null, r.role || "—", r.link && /*#__PURE__*/React.createElement("a", {
     href: r.link,
     target: "_blank",
     rel: "noreferrer",
@@ -546,12 +566,6 @@ const COLUMNS = [{
   }, /*#__PURE__*/React.createElement(ExternalLink, {
     size: 12
   }))),
-  tdStyle: () => s.tdCompany
-}, {
-  key: "role",
-  label: "Role",
-  sortKey: "role",
-  render: r => r.role || "—",
   tdStyle: () => s.tdRole
 }, {
   key: "category",
@@ -652,7 +666,7 @@ function PipelineDashboard() {
   const [pasteText, setPasteText] = useState("");
   const [catFilter, setCatFilter] = useState("all");
   const [srcFilter, setSrcFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState(new Set());
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [pinnedOpen, setPinnedOpen] = useState(true);
   const [search, setSearch] = useState("");
@@ -815,12 +829,12 @@ function PipelineDashboard() {
   };
 
   // ============ FILTERED RECORD SET (drives every stat) ============
-  const activeFilterCount = (catFilter !== "all" ? 1 : 0) + (srcFilter !== "all" ? 1 : 0) + (statusFilter !== "all" ? 1 : 0) + (search.trim() ? 1 : 0);
+  const activeFilterCount = (catFilter !== "all" ? 1 : 0) + (srcFilter !== "all" ? 1 : 0) + (statusFilter.size > 0 ? 1 : 0) + (search.trim() ? 1 : 0);
   const filtered = useMemo(() => {
     let rs = records;
     if (catFilter !== "all") rs = rs.filter(r => r.category === catFilter);
     if (srcFilter !== "all") rs = rs.filter(r => r.source === srcFilter);
-    if (statusFilter !== "all") rs = rs.filter(r => r.status === statusFilter);
+    if (statusFilter.size > 0) rs = rs.filter(r => !statusFilter.has(r.status));
     if (search.trim()) {
       const q = search.toLowerCase();
       rs = rs.filter(r => r.company.toLowerCase().includes(q) || r.role.toLowerCase().includes(q) || r.skills.some(s => s.toLowerCase().includes(q)));
@@ -852,7 +866,8 @@ function PipelineDashboard() {
     nRejected = count("rejected"),
     nNoResp = count("noResponse"),
     nApplied = count("applied"),
-    nWithdrawn = count("withdrawn");
+    nWithdrawn = count("withdrawn"),
+    nLead = count("lead");
   const reachedInterview = nInterview + nOffer;
   // employer engaged in any way (incl. cases you later withdrew from)
   const responded = nInterview + nOffer + nRejected + nWithdrawn;
@@ -865,7 +880,7 @@ function PipelineDashboard() {
   const medianResponse = median(responseDays);
 
   // active (still live) vs closed
-  const activeCount = filtered.filter(r => r.status === "applied" || r.status === "interview").length;
+  const activeCount = filtered.filter(r => r.status === "lead" || r.status === "applied" || r.status === "interview").length;
   // stale: still in "applied" and aging past the threshold
   const staleCount = filtered.filter(isStale).length;
 
@@ -890,6 +905,10 @@ function PipelineDashboard() {
     name: "Pending",
     value: nApplied,
     color: T.cyan
+  }, {
+    name: "Leads",
+    value: nLead,
+    color: T.blue
   }].filter(d => d.value > 0);
   const sourceData = useMemo(() => SOURCES.map(sc => {
     const rs = records.filter(r => r.source === sc.key && (catFilter === "all" || r.category === catFilter));
@@ -918,8 +937,12 @@ function PipelineDashboard() {
     };
   }).filter(d => d.applied > 0), [records, cats, srcFilter]);
   const funnel = [{
+    stage: "Leads",
+    value: nLead,
+    color: T.blue
+  }, {
     stage: "Applied",
-    value: totalApps,
+    value: totalApps - nLead,
     color: T.cyan
   }, {
     stage: "Responded",
@@ -1124,7 +1147,7 @@ function PipelineDashboard() {
     style: s.filterCount
   }, activeFilterCount), !filtersOpen && activeFilterCount > 0 && /*#__PURE__*/React.createElement("span", {
     style: s.filterSummary
-  }, [catFilter !== "all" && catFilter, srcFilter !== "all" && SOURCE_MAP[srcFilter]?.short, statusFilter !== "all" && STATUS_MAP[statusFilter]?.label, search.trim() && `"${search.trim()}"`].filter(Boolean).join(" · ")), /*#__PURE__*/React.createElement("span", {
+  }, [catFilter !== "all" && catFilter, srcFilter !== "all" && SOURCE_MAP[srcFilter]?.short, statusFilter.size > 0 && [...statusFilter].map(k => STATUS_MAP[k]?.label).filter(Boolean).join(", "), search.trim() && `"${search.trim()}"`].filter(Boolean).join(" · ")), /*#__PURE__*/React.createElement("span", {
     style: {
       flex: 1
     }
@@ -1135,7 +1158,7 @@ function PipelineDashboard() {
       e.stopPropagation();
       setCatFilter("all");
       setSrcFilter("all");
-      setStatusFilter("all");
+      setStatusFilter(new Set());
       setSearch("");
     }
   }, "Clear all"), /*#__PURE__*/React.createElement(ChevronDown, {
@@ -1203,13 +1226,13 @@ function PipelineDashboard() {
   }, "Status"), /*#__PURE__*/React.createElement("div", {
     style: s.chipRow
   }, /*#__PURE__*/React.createElement(Chip, {
-    active: statusFilter === "all",
-    onClick: () => setStatusFilter("all"),
+    active: statusFilter.size === 0,
+    onClick: () => setStatusFilter(new Set()),
     label: "All"
   }), STATUSES.map(st => /*#__PURE__*/React.createElement(Chip, {
     key: st.key,
-    active: statusFilter === st.key,
-    onClick: () => setStatusFilter(st.key),
+    active: !statusFilter.has(st.key),
+    onClick: () => setStatusFilter(prev => { const n = new Set(prev); n.has(st.key) ? n.delete(st.key) : n.add(st.key); return n; }),
     label: st.label
   })))))), starred.length > 0 && /*#__PURE__*/React.createElement("section", {
     style: s.pinnedWrap
@@ -1260,17 +1283,27 @@ function PipelineDashboard() {
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: s.pinnedCompany
-    }, r.company, r.link && /*#__PURE__*/React.createElement("a", {
+    }, r.company, r.website && /*#__PURE__*/React.createElement("a", {
+      href: r.website.startsWith("http") ? r.website : "https://" + r.website,
+      target: "_blank",
+      rel: "noreferrer",
+      style: {...s.jdLink, opacity: 0.55},
+      title: "Company website",
+      onClick: e => e.stopPropagation()
+    }, /*#__PURE__*/React.createElement(ExternalLink, {
+      size: 11
+    }))), /*#__PURE__*/React.createElement("div", {
+      style: s.pinnedRole
+    }, r.role, r.link && /*#__PURE__*/React.createElement("a", {
       href: r.link,
       target: "_blank",
       rel: "noreferrer",
       style: s.jdLink,
+      title: "Open job posting",
       onClick: e => e.stopPropagation()
     }, /*#__PURE__*/React.createElement(ExternalLink, {
       size: 12
-    }))), /*#__PURE__*/React.createElement("div", {
-      style: s.pinnedRole
-    }, r.role)), /*#__PURE__*/React.createElement("button", {
+    })))), /*#__PURE__*/React.createElement("button", {
       className: "iconbtn",
       style: s.pinStar,
       onClick: e => {
@@ -2007,8 +2040,8 @@ function RecordModal({
   }, "Additional details"), /*#__PURE__*/React.createElement("span", {
     style: m.dividerLine
   })), /*#__PURE__*/React.createElement("div", {
-    className: "mRow2",
-    style: m.row2
+    className: "mRow3",
+    style: m.row3
   }, /*#__PURE__*/React.createElement(Field, {
     label: "Category"
   }, /*#__PURE__*/React.createElement("input", {
@@ -2029,6 +2062,12 @@ function RecordModal({
     value: r.link,
     onChange: v => set("link", v),
     ph: "https://\u2026"
+  })), /*#__PURE__*/React.createElement(Field, {
+    label: "Company website"
+  }, /*#__PURE__*/React.createElement(In, {
+    value: r.website || "",
+    onChange: v => set("website", v),
+    ph: "stripe.com"
   }))), /*#__PURE__*/React.createElement(Field, {
     label: "Skills required"
   }, /*#__PURE__*/React.createElement("div", {
